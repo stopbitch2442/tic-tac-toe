@@ -8,8 +8,12 @@ namespace tic_tac_toe.Domain.Models
 {
     public class Turn
     {
-        public Guid Id { get;}
+        public Guid Id { get; }
         public int Turned { get; set; } //1 - крест 0 - ноль
-        
+        public Turn()
+        {
+            Id = Guid.NewGuid();
+            Turned = 0;
+        }
     }
 }

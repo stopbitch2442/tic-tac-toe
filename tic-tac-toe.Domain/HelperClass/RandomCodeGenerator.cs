@@ -12,7 +12,7 @@ namespace tic_tac_toe.Domain.HelperClass
         public static int GenerateCode()
         {
             Random rnd = new Random();
-            int code = (int)rnd.NextInt64(0, 5);
+            int code = (int)rnd.NextInt64(00000, 99999);
             return code;
         }
     }

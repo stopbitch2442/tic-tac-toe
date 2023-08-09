@@ -14,10 +14,10 @@ namespace tic_tac_toe.Domain.Models
         public string Name { get; set; }
         public int Code { get;} 
         public bool IsActive { get; set; }
-        public bool IsPlaying { get; set; } 
+        public bool IsPlaying { get; set; }
         public Turn Turn { get; set; }
 
-       public Player(string name) 
+        public Player(string name) 
         {
             Id = Guid.NewGuid();
             Name = name;

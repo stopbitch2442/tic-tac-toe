@@ -10,7 +10,7 @@ namespace tic_tac_toe.Domain.Models
     public class Match
     {
         public Guid Id { get; }
-        public int Code { get;}
+        public int Code { get; }
         public bool IsComplete { get; set; }
         public Dictionary<Guid, Player> Players { get; }
         public Dictionary<Guid, Turn> Turns { get; }

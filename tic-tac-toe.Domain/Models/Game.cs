@@ -9,46 +9,108 @@ namespace tic_tac_toe.Domain.Models
     public class Game
     {
         private Match match;
+
         public Game()
         {
             match = new Match();
         }
+
         public void AddPlayer(string playerName)
         {
             var player = new Player(playerName);
             match.Players.Add(player.Id, player);
         }
+
         public void StartMatch()
         {
+            while (match.Players.Count < 2)
+            {
+                AddPlayer("saske");
+                AddPlayer("naruto");
+            }
+
             if (match.Players.Count < 2)
             {
-                Console.WriteLine("Недостаточно игроков для начала игры");
+                throw new InvalidOperationException("Недостаточно игроков для начала игры");
+            }
+
+            Console.WriteLine($"Матч начался, код матча: {match.Code}");
+
+            Player player = GetNextPlayer();
+
+            while (!match.IsComplete)
+            {
+                MakeTurn(player);
+
+                if (CheckWinCondition(player))
+                {
+                    Console.WriteLine($"Игрок {player.Name} победил!");
+                    match.IsComplete = true;
+                }
+                else if (match.Field.IsFull())
+                {
+                    Console.WriteLine("Матч окончился ничьей!");
+                    match.IsComplete = true;
+                }
+                else
+                {
+                    player = GetNextPlayer();
+                }
+            }
+        }
+
+        public void MakeTurn(Player player)
+        {
+            Console.WriteLine($"Ход игрока {player.Name}");
+            Console.WriteLine("Введите координаты хода (например, 1 2):");
+            string input = Console.ReadLine();
+            string[] coordinates = input.Split(' ');
+            int row = int.Parse(coordinates[0]);
+            int column = int.Parse(coordinates[1]);
+
+            if (!match.Field.IsValidMove(row, column))
+            {
+                Console.WriteLine("Некорректные координаты хода. Попробуйте ещё раз.");
+                MakeTurn(player);
                 return;
             }
-            Console.WriteLine($"Матч начался, код матча:{match.Code}");
-            Player player = GetNextPlayer();
+
+            match.Field.MakeMove(row, column, player);
         }
 
         public Player GetNextPlayer()
         {
-            foreach (var player in match.Players.Values)
+            var player = match.Players.Values.FirstOrDefault(p => !p.IsActive && !p.IsPlaying);
+
+            if (player != null)
             {
-                if (!player.IsActive && !player.IsPlaying)
-                {
-                    player.IsPlaying = true;
-                    player.IsActive = true;
-                    return player;
-                }
+                player.IsPlaying = true;
+                player.IsActive = true;
+                return player;
             }
-            return null;
+
+            throw new InvalidOperationException("Нет доступных игроков для хода");
         }
+
         private bool CheckWinCondition(Player player)
         {
             int[,] board = match.Field.Board;
+
             // Check rows
             for (int row = 0; row < board.GetLength(0); row++)
             {
-                if (board[row, 0] * board[row, 1] * board[row, 2] == player.Turn.Turned)
+                bool hasWinningCombination = true;
+
+                for (int column = 0; column < board.GetLength(1); column++)
+                {
+                    if (board[row, column] != player.Turn.Turned)
+                    {
+                        hasWinningCombination = false;
+                        break;
+                    }
+                }
+
+                if (hasWinningCombination)
                 {
                     return true;
                 }
@@ -57,15 +119,41 @@ namespace tic_tac_toe.Domain.Models
             // Check columns
             for (int column = 0; column < board.GetLength(1); column++)
             {
-                if (board[0, column] * board[1, column] * board[2, column] == player.Turn.Turned)
+                bool hasWinningCombination = true;
+
+                for (int row = 0; row < board.GetLength(0); row++)
+                {
+                    if (board[row, column] != player.Turn.Turned)
+                    {
+                        hasWinningCombination = false;
+                        break;
+                    }
+                }
+
+                if (hasWinningCombination)
                 {
                     return true;
                 }
             }
 
             // Check diagonals
-            if (board[0, 0] * board[1, 1] * board[2, 2] == player.Turn.Turned ||
-                board[0, 2] * board[1, 1] * board[2, 0] == player.Turn.Turned)
+            bool hasDiagonalWinningCombination1 = true;
+            bool hasDiagonalWinningCombination2 = true;
+
+            for (int i = 0; i < board.GetLength(0); i++)
+            {
+                if (board[i, i] != player.Turn.Turned)
+                {
+                    hasDiagonalWinningCombination1 = false;
+                }
+
+                if (board[i, board.GetLength(1) - 1 - i] != player.Turn.Turned)
+                {
+                    hasDiagonalWinningCombination2 = false;
+                }
+            }
+
+            if (hasDiagonalWinningCombination1 || hasDiagonalWinningCombination2)
             {
                 return true;
             }
